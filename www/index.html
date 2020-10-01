@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      body { font: 13px Helvetica, Arial; }
+      form.form-chat { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form.form-chat input { border: 0; padding: 10px; width: 90%; margin-right: 0.5%; }
+      form.form-chat button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; margin: 10px 0px; border: 1px solid #ccc; border-radius: 5px; }
+      #messages li.mine { text-align: right; background-color: #eee; }
+    </style>
+  </head>
+  <body>
+    <div>
+      <form action="/logout" method="POST">
+        <button type="submit">Logout</button>
+      </form>
+    </div>
+    <p>Username: <span id="username"></span></p>
+    <ul id="messages"></ul>
+    <form class="form-chat" action="">
+      <input id="chat-msg-input" autocomplete="off" /><button>Send</button>
+    </form>
+
+    <script src="/js/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+      $(function () {
+        var socket = io();
+        $('.form-chat').submit(function(e) {
+          e.preventDefault(); // prevents page reloading
+          var msg = $('#chat-msg-input').val();
+          socket.emit('chat message', msg);
+          $('#chat-msg-input').val('');
+          $('#messages').append($('<li class="mine">').text(msg));
+
+          return false;
+        });
+        socket.on('connect', function() {
+          socket.on('chat message', function(data){
+            $('#messages').append($('<li>').text(data.username + ': ' + data.msg));
+          });
+
+          socket.emit('whoami', function(username) {
+            document.getElementById("username").innerText = username;
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
